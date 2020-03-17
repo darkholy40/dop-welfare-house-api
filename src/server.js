@@ -200,10 +200,27 @@ app.get('/getdata/:username', (req, res) => {
                     })
                 } catch {
                     // token หมดอายุแล้ว
-                    res.json({
-                        code: '00401',
-                        message: 'Token has been expired'
+                    connection.query(`UPDATE agents SET token = '' WHERE agents.username = '${SECRET}'`, (err, data) => {
+                        if(err) {
+                            res.send(err)
+                        } else {
+                            if(data.length === 0) {
+                                res.json({
+                                    code: '00000',
+                                    message: 'ไม่สามารถบันทึกข้อมูลได้'
+                                })
+                            } else {
+                                // message: set token to ''
+
+                                res.json({
+                                    code: '00401',
+                                    message: 'Token has been expired'
+                                })
+                            }
+                        }
                     })
+
+                    
                 }
             }
         }
