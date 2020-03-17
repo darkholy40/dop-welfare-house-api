@@ -21,7 +21,6 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 app.get('/getallagents', (req, res) => {
-
     connection.query(`SELECT * FROM agents ORDER BY agents.rank_order ASC`, (err, data) => {
         if(err) {
             console.log(err)
