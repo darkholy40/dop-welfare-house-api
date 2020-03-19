@@ -77,17 +77,10 @@ app.post('/authenticate', (req, res) => {
                     message: 'ไม่พบข้อมูล' // Authen ไม่ผ่าน
                 })
             } else {
-                if(data[0].role === 0) {
-                    res.json({
-                        code: '00201',
-                        message: 'ไม่มีสิทธ์เข้าระบบ' // Authen ผ่าน แต่ไม่มีสิทธิ์เข้าระบบ
-                    })
-                } else {
-                    res.json({
-                        code: '00200',
-                        token: data[0].token,
-                    })
-                }
+                res.json({
+                    code: '00200',
+                    token: data[0].token,
+                })
             }
         }
     })
