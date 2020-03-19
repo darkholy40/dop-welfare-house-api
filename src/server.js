@@ -252,30 +252,51 @@ app.get('/getdata/:username', (req, res) => {
     })
 })
 
-app.get('/getcandidates', (req, res) => {
+app.get('/getcandidates/:type', (req, res) => {
+    const type = req.params.type
     const token = req.headers['authorization']
+    let returnData = []
+    let arrQuery = []
+    if(type === '1') {
+        arrQuery = [
+            'น.4-5',
+            'น.2-3',
+            'น.1'
+        ]
+    } else {
+        arrQuery = [
+            'ป.2-3',
+            'ป.1'
+        ]
+    }
 
-    connection.query(`SELECT * FROM candidates`, (err, data) => {
-        if(err) {
-            console.log(err)
-            res.json({
-                code: '00401',
-                message: 'ไม่สามารถเข้าถึงฐานข้อมูล' // Access denied to DB or out of service
-            })
-        } else {
-            if(data.length === 0) {
+    arrQuery.map((toQuery, index) => {
+        connection.query(`SELECT * FROM candidates WHERE salary_group LIKE '%${toQuery}%'`, (err, data) => {
+            if(err) {
+                console.log(err)
                 res.json({
-                    code: '00404',
-                    message: 'ไม่พบข้อมูล' // ไม่พบข้อมูล
+                    code: '00401',
+                    message: 'ไม่สามารถเข้าถึงฐานข้อมูล' // Access denied to DB or out of service
                 })
-            } else {   
-                res.json({
-                    code: '00200',
-                    message: 'เชื่อมต่อสำเร็จ',
-                    data: data
-                })
+            } else {
+                if(data.length === 0) {
+                    returnData = [...returnData, []]
+                    console.log('ไม่พบข้อมูล')
+                } else {
+                    returnData = [...returnData, data]
+
+                    if(index+1 === arrQuery.length) {
+                        res.json({
+                            code: '00200',
+                            message: 'เชื่อมต่อสำเร็จ',
+                            data: returnData
+                        })
+                    }
+                }
             }
-        }
+        })
+
+        return 0
     })
 })
 
