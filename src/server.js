@@ -35,10 +35,10 @@ app.get('/getallagents', (req, res) => {
                     message: 'ไม่พบข้อมูล' // Authen ไม่ผ่าน
                 })
             } else {
-                let returnDate = []
+                let returnData = []
 
                 data.map((item, index) => {
-                    returnDate.push({
+                    returnData.push({
                         id: item.id,
                         username: item.username,
                         position: item.position,
@@ -52,7 +52,7 @@ app.get('/getallagents', (req, res) => {
 
                 res.json({
                     code: '00200',
-                    data: returnDate // Authen ผ่าน
+                    data: returnData // Authen ผ่าน
                 })
             }
         }
@@ -246,6 +246,33 @@ app.get('/getdata/:username', (req, res) => {
                             }
                         }
                     }
+                })
+            }
+        }
+    })
+})
+
+app.get('/getcandidates', (req, res) => {
+    const token = req.headers['authorization']
+
+    connection.query(`SELECT * FROM candidates`, (err, data) => {
+        if(err) {
+            console.log(err)
+            res.json({
+                code: '00401',
+                message: 'ไม่สามารถเข้าถึงฐานข้อมูล' // Access denied to DB or out of service
+            })
+        } else {
+            if(data.length === 0) {
+                res.json({
+                    code: '00404',
+                    message: 'ไม่พบข้อมูล' // ไม่พบข้อมูล
+                })
+            } else {   
+                res.json({
+                    code: '00200',
+                    message: 'เชื่อมต่อสำเร็จ',
+                    data: data
                 })
             }
         }
