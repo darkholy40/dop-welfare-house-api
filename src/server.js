@@ -255,6 +255,7 @@ app.get('/getdata/:username', (req, res) => {
 app.get('/getcandidates/:type', (req, res) => {
     const type = req.params.type
     const token = req.headers['authorization']
+    const agentId = req.headers['agent_id']
     let returnData = []
     let arrQuery = []
     if(type === '1') {
@@ -271,7 +272,7 @@ app.get('/getcandidates/:type', (req, res) => {
     }
 
     arrQuery.map((toQuery, index) => {
-        connection.query(`SELECT * FROM candidates WHERE salary_group LIKE '%${toQuery}%'`, (err, data) => {
+        connection.query(`SELECT candidates.id, candidates.rank, candidates.fname, candidates.lname, candidates.salary_group, scores.agent_is, scores.candidate_id, scores.score_first, scores.score_second, scores.score_third, scores.score_fourth, scores.score_fifth, scores.is_approved FROM candidates INNER JOIN scores ON candidates.id=scores.candidate_id WHERE candidates.salary_group LIKE '%${toQuery}%' AND scores.agent_is = ${agentId}`, (err, data) => {
             if(err) {
                 console.log(err)
                 res.json({
