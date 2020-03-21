@@ -272,7 +272,7 @@ app.get('/getcandidates/:type', (req, res) => {
     }
 
     arrQuery.map((toQuery, index) => {
-        connection.query(`SELECT candidates.id, candidates.rank, candidates.fname, candidates.lname, candidates.salary_group, scores.agent_is, scores.candidate_id, scores.score_first, scores.score_second, scores.score_third, scores.score_fourth, scores.score_fifth, scores.is_approved FROM candidates INNER JOIN scores ON candidates.id=scores.candidate_id WHERE candidates.salary_group LIKE '%${toQuery}%' AND scores.agent_is = ${agentId}`, (err, data) => {
+        connection.query(`SELECT candidates.id, candidates.rank, candidates.fname, candidates.lname, candidates.salary_group, scores.agent_id, scores.candidate_id, scores.score_first, scores.score_second, scores.score_third, scores.score_fourth, scores.score_fifth, scores.is_approved FROM candidates INNER JOIN scores ON candidates.id=scores.candidate_id WHERE candidates.salary_group LIKE '%${toQuery}%' AND scores.agent_id = ${agentId}`, (err, data) => {
             if(err) {
                 console.log(err)
                 res.json({
@@ -291,6 +291,35 @@ app.get('/getcandidates/:type', (req, res) => {
                             code: '00200',
                             message: 'เชื่อมต่อสำเร็จ',
                             data: returnData
+                        })
+                    }
+                }
+            }
+        })
+
+        return 0
+    })
+})
+
+app.post('/candidates/score/save', (req, res) => {
+    const groupData = req.body.groupData
+
+    Object.keys(groupData).map((person, index) => {
+        const getPerson = groupData[person]
+        connection.query(`UPDATE scores SET score_first = ${getPerson.score_first}, score_second = ${getPerson.score_second}, score_third = ${getPerson.score_third}, score_fourth = ${getPerson.score_fourth}, score_fifth = ${getPerson.score_fifth}, is_approved = 1 WHERE agent_id = ${getPerson.agent_id} AND candidate_id = ${getPerson.candidate_id}`, (err, data) => {
+            if(err) {
+                res.send(err)
+            } else {
+                if(data.length === 0) {
+                    res.json({
+                        code: '00000',
+                        message: 'ไม่สามารถบันทึกข้อมูลได้'
+                    })
+                } else {
+                    if(index+1 === Object.keys(groupData).length) {
+                        res.json({
+                            code: '00200',
+                            message: 'บันทึกเรียบร้อย',
                         })
                     }
                 }
