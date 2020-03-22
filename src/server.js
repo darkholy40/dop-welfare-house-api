@@ -306,7 +306,15 @@ app.post('/candidates/score/save', (req, res) => {
 
     Object.keys(groupData).map((person, index) => {
         const getPerson = groupData[person]
-        connection.query(`UPDATE scores SET score_first = ${getPerson.score_first}, score_second = ${getPerson.score_second}, score_third = ${getPerson.score_third}, score_fourth = ${getPerson.score_fourth}, score_fifth = ${getPerson.score_fifth}, is_approved = 1 WHERE agent_id = ${getPerson.agent_id} AND candidate_id = ${getPerson.candidate_id}`, (err, data) => {
+        const score_first = getPerson.score_first !== null ? getPerson.score_first : 0
+        const score_second = getPerson.score_second !== null ? getPerson.score_second : 0
+        const score_third = getPerson.score_third !== null ? getPerson.score_third : 0
+        const score_fourth = getPerson.score_fourth !== null ? getPerson.score_fourth : 0
+        const score_fifth = getPerson.score_fifth !== null ? getPerson.score_fifth : 0
+        const agent_id = getPerson.agent_id
+        const candidate_id = getPerson.candidate_id
+
+        connection.query(`UPDATE scores SET score_first = ${score_first}, score_second = ${score_second}, score_third = ${score_third}, score_fourth = ${score_fourth}, score_fifth = ${score_fifth}, is_approved = 1 WHERE agent_id = ${agent_id} AND candidate_id = ${candidate_id}`, (err, data) => {
             if(err) {
                 res.send(err)
             } else {
