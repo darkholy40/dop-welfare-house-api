@@ -321,7 +321,7 @@ app.post('/candidates/score/save', (req, res) => {
                 if(data.length === 0) {
                     res.json({
                         code: '00000',
-                        message: 'ไม่สามารถบันทึกข้อมูลได้'
+                        message: 'ไม่มีข้อมูลที่ถูกบันทึก'
                     })
                 } else {
                     if(index+1 === Object.keys(groupData).length) {
