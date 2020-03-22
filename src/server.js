@@ -252,6 +252,49 @@ app.get('/getdata/:username', (req, res) => {
     })
 })
 
+app.get('/verify/approvement', (req, res) => {
+    const token = req.headers['authorization']
+    const agentId = req.headers['agent_id']
+    const arrQuery = [
+        'น',
+        'ป'
+    ]
+    let result = {
+        group_0: 0,
+        group_1: 0
+    }
+
+    arrQuery.map((toQuery, index) => {
+        connection.query(`SELECT scores.agent_id, scores.candidate_id, candidates.salary_group, scores.is_approved FROM scores INNER JOIN candidates ON candidates.id=scores.candidate_id WHERE scores.agent_id = ${agentId} AND scores.is_approved = 0 AND candidates.salary_group LIKE '%${toQuery}%'`, (err, data) => {
+            if(err) {
+                console.log(err)
+                res.json({
+                    code: '00401',
+                    message: 'ไม่สามารถเข้าถึงฐานข้อมูล' // Access denied to DB or out of service
+                })
+            } else {
+                if(data.length === 0) {
+                    // approved ไปหมดแล้ว -> จึงหา scores.is_approved = 0 ไม่เจอ อิอิ
+                    result = {
+                        ...result,
+                        [`row_${index}`]: 1
+                    }
+                } else {
+                    // ยัง approved ไม่หมด
+                }
+
+                if(index+1 === arrQuery.length) {
+                    res.json({
+                        code: '00200',
+                        message: 'เชื่อมต่อสำเร็จ',
+                        data: result
+                    })
+                }
+            }
+        })
+    })
+})
+
 app.get('/getcandidates/:type', (req, res) => {
     const type = req.params.type
     const token = req.headers['authorization']
