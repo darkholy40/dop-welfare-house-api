@@ -163,6 +163,8 @@ app.post('/token/save', (req, res) => {
     })
 })
 
+// ส่วนที่ 2 สำหรับกรรมการแต่ละท่าน ใช้ลงคะแนนผู้เสนอขอบ้านพัก
+
 app.get('/getdata/:username', (req, res) => {
     const username = req.headers['username']
     const token = req.headers['authorization']
@@ -359,6 +361,85 @@ app.post('/candidates/score/save', (req, res) => {
         })
 
         return 0
+    })
+})
+
+// ส่วนที่ 3 สำหรับเลขการประชุม ใช้นำเสนอสรุปผลการให้คะแนนของกรรมการ
+
+app.get('/candidates/score', (req, res) => {
+    const token = req.headers['authorization']
+    const allGroup = [
+        [
+            'น.4-5',
+            'น.2-3',
+            'น.1'
+        ],
+        [
+            'ป.2-3',
+            'ป.1'
+        ]
+    ]
+    let returnData = []
+
+    connection.query(`SELECT id FROM agents`, (err, allAgents) => {
+        if(err) {
+            console.log(err)
+            res.json({
+                code: '00401',
+                message: 'ไม่สามารถเข้าถึงฐานข้อมูล' // Access denied to DB or out of service
+            })
+        } else {
+            if(allAgents.length === 0) {
+                res.json({
+                    code: '00400',
+                    message: 'ไม่พบข้อมูลกรรมการ'
+                })
+            } else {
+                allAgents.map((anAgent, anAgentIndex) => {
+                    returnData[anAgentIndex] = {
+                        agent_id: anAgent.id,
+                        big_group: []
+                    }
+                    allGroup.map((bigGroup, bigGroupIndex) => {
+                        returnData[anAgentIndex].big_group[bigGroupIndex] = []
+                        bigGroup.map((subGroup, subGroupIndex) => {
+                            connection.query(`SELECT candidates.id, candidates.rank, candidates.fname, candidates.lname, candidates.salary_group, scores.agent_id, scores.candidate_id, scores.score_first, scores.score_second, scores.score_third, scores.score_fourth, scores.score_fifth, scores.is_approved FROM candidates INNER JOIN scores ON candidates.id=scores.candidate_id WHERE candidates.salary_group LIKE '%${subGroup}%' AND scores.agent_id = ${anAgent.id}`, (err, data) => {
+                                if(err) {
+                                    console.log(err)
+                                    res.json({
+                                        code: '00401',
+                                        message: 'ไม่สามารถเข้าถึงฐานข้อมูล' // Access denied to DB or out of service
+                                    })
+                                } else {
+                                    if(data.length === 0) {
+                                        console.log('ไม่พบข้อมูล')
+                                    } else {
+                                        // returnData = [...returnData, data]
+                                        returnData[anAgentIndex].big_group[bigGroupIndex][subGroupIndex] = data
+
+                                        if(anAgentIndex+1 === allAgents.length) {
+                                            try {
+                                                res.json({
+                                                    code: '00200',
+                                                    message: 'ดึงข้อมูลสำเร็จ',
+                                                    data: returnData
+                                                })
+                                            } catch(err) {
+                                                // ไว้มาดูต่อว่าทำไม่มันจึงเกิด Error -> ERR_HTTP_HEADERS_SENT
+                                                console.log(err.code)
+                                            }
+                                        }
+                                    }
+                                }
+                            })
+                            return 0
+                        })
+                        return 0
+                    })
+                    return 0
+                })
+            }
+        }
     })
 })
 
