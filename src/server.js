@@ -190,63 +190,44 @@ app.get('/getdata/:username', (req, res) => {
                 }
                 
                 if(data[0].token !== token) {
-                    console.log('123')
                     res.json({
-                        code: '00404',
-                        message: 'ไม่พบข้อมูล' // ไม่พบ username --> link ไม่ถูกต้อง
+                        code: 'loggedout',
+                        message: 'ออกจากระบบหรือมีการเข้าสู่ระบบจากอุปกรณ์อื่น' // token ถูกเปลี่ยน -> ออนไลน์อยู่ที่อุปกรร์อื่น
                     })
                     return 0
                 }
 
-                connection.query(`SELECT * FROM agents WHERE token = '${token}'`, (err, data) => {
-                    if(err) {
-                        // res.send(err)
-                        res.json({
-                            code: 'db is out of service',
-                            message: 'ฐานข้อมูลยังไม่เปิดให้บริการ'
-                        })
-                    } else {
-                        if(data.length === 0) {
-                            res.json({
-                                code: 'loggedout',
-                                message: 'ออกจากระบบหรือมีการเข้าสู่ระบบจากอุปกรณ์อื่น' // ไม่พบ token --> ถูก logged out ไปแล้ว หรือถูกเข้าระบบจากอุปกรณ์อื่น
-                            })
+                const SECRET = data[0].username
+                try {
+                    jwt.verify(token, SECRET)
+            
+                    // token สามารถใช้ได้
+                    res.json({
+                        code: '00200',
+                        data: data[0]
+                    })
+                } catch {
+                    // token หมดอายุแล้ว
+                    connection.query(`UPDATE agents SET token = '' WHERE agents.username = '${username}'`, (err, data) => {
+                        if(err) {
+                            res.send(err)
                         } else {
-                            const SECRET = data[0].username
-            
-                            try {
-                                jwt.verify(token, SECRET)
-                        
-                                // token สามารถใช้ได้
+                            if(data.length === 0) {
                                 res.json({
-                                    code: '00200',
-                                    data: data[0]
+                                    code: '00000',
+                                    message: 'ไม่สามารถบันทึกข้อมูลได้'
                                 })
-                            } catch {
-                                // token หมดอายุแล้ว
-                                connection.query(`UPDATE agents SET token = '' WHERE agents.username = '${username}'`, (err, data) => {
-                                    if(err) {
-                                        res.send(err)
-                                    } else {
-                                        if(data.length === 0) {
-                                            res.json({
-                                                code: '00000',
-                                                message: 'ไม่สามารถบันทึกข้อมูลได้'
-                                            })
-                                        } else {
-                                            // message: set token to ''
-            
-                                            res.json({
-                                                code: '00401',
-                                                message: 'Token has been expired'
-                                            })
-                                        }
-                                    }
+                            } else {
+                                // message: set token to ''
+
+                                res.json({
+                                    code: '00401',
+                                    message: 'Token has been expired'
                                 })
                             }
                         }
-                    }
-                })
+                    })
+                }
             }
         }
     })
