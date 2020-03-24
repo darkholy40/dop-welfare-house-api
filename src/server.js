@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const mysql = require('mysql')
 
 const app = express()
-const PORT = process.env.PORT || 8080
+const PORT = process.env.PORT || 5010
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
