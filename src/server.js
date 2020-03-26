@@ -20,6 +20,12 @@ app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
+setInterval(() => {
+    connection.query(`SELECT id FROM agents`, (err, data) => {
+        console.log(new Date())
+    })
+}, 30000)
+
 app.get('/getallagents', (req, res) => {
     connection.query(`SELECT * FROM agents ORDER BY agents.rank_order ASC`, (err, data) => {
         if(err) {
